@@ -17,4 +17,17 @@ class ProgramController extends AbstractController
 
         ]);
     }
+
+    #[Route('/program/{id}', methods: ['GET'], name: 'program_show')]
+    public function show($id): Response
+    {
+        // Vérifier si l'id est un entier
+        if (!is_numeric($id)) {
+            throw $this->createNotFoundException();
+        }
+        
+        return $this->render('program/show.html.twig', [
+            'id' => $id,
+        ]);
+    }
 }
