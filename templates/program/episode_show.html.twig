@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Season #{{season.number}}{% endblock %}
+{% block title %}Episode #{{episode.number}}{% endblock %}
 
 {% block body %}
 <main>
@@ -9,15 +9,14 @@
         <div class="media-body">
             <h1 class="mt-0">{{ program.title }}</h1>
         </div>
-        <h2>Saison - {{season.number}}</h2>
-        {% for episode in season.episodes %}
+        <h2>Saison - {{episode.number}}</h2>
+
         <div>
             <a>
-            <h3>{{episode.number}}-{{episode.title}}</h3>
+                <h3>{{episode.number}}-{{episode.title}}</h3>
             </a>
-            <a href="{{path('program_episode_show',{'program':program.id,'season':season.id, 'episode':episode.id})}}">show Me</a>
+            <p>{{episode.synopsis}}</p>
         </div>
-        {% endfor %}
     </div>
 
     <a href="{{ path('program_index') }}">
@@ -25,4 +24,3 @@
     </a>
 </main>
 {% endblock %}
-
