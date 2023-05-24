@@ -40,7 +40,7 @@ public function new(Request $request, ProgramRepository $ProgramRepository): Res
     $form->handleRequest($request);
 
 
-    if ($form->isSubmitted()) {
+    if ($form->isSubmitted()&& $form->isValid()) {
         $ProgramRepository->save($program, true);
         return $this->redirectToRoute('program_index');
 
