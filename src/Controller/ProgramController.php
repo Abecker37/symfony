@@ -5,11 +5,13 @@ namespace App\Controller;
 use App\Entity\Season;
 use App\Entity\Episode;
 use App\Entity\Program;
+use App\Form\ProgramType;
 use App\Repository\SeasonRepository;
 use App\Repository\ProgramRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 
 class ProgramController extends AbstractController
 {
@@ -23,6 +25,37 @@ class ProgramController extends AbstractController
 
         ]);
     }
+
+#[Route('program/new', name: 'new')]
+public function new(Request $request, ProgramRepository $ProgramRepository): Response
+{
+
+    // Create a new Category Object
+
+    $program = new Program();
+
+    $form = $this->createForm(ProgramType::class, $program);
+
+
+    $form->handleRequest($request);
+
+
+    if ($form->isSubmitted()) {
+        $ProgramRepository->save($program, true);
+        return $this->redirectToRoute('program_index');
+
+    }
+
+
+    // Render the form
+
+    return $this->render('program/new.html.twig', [
+
+        'form' => $form,
+
+    ]);
+
+}
 
     #[Route('/program/{id}/', name: 'program_show')]
 
