@@ -40,7 +40,7 @@ public function new(Request $request, CategoryRepository $categoryRepository): R
     $form->handleRequest($request);
 
 
-    if ($form->isSubmitted()) {
+    if ($form->isSubmitted()&& $form->isValid()) {
         $categoryRepository->save($category, true);
         return $this->redirectToRoute('index');
 
