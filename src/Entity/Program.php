@@ -33,7 +33,7 @@ class Program
     #[ORM\Column(type: Types::TEXT)]
     #[Assert\NotBlank(message: 'Ne me laisse pas tout vide')]
     #[Assert\Regex(
-           pattern:"/^(?!.*plus belle la vie).+$/i",
+            pattern:"/^(?!.*plus belle la vie).+$/i",
             message:"On parle de vraies séries ici")]
     private ?string $synopsis = null;
 
