@@ -14,7 +14,7 @@ class EpisodeFixtures extends Fixture implements DependentFixtureInterface
     public function load(ObjectManager $manager)
     {
         $faker = Factory::create();
-        for($i = 0; $i < 500; $i++) {
+        for($i = 0; $i < 10; $i++) {
             $episode = new episode();
             //Ce Faker va nous permettre d'alimenter l'instance de Season que l'on souhaite ajouter en base
             $episode->setTitle($faker->city);
