@@ -8,17 +8,31 @@ use App\Entity\Program;
 use App\Form\ProgramType;
 use App\Repository\SeasonRepository;
 use App\Repository\ProgramRepository;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
+
 
 class ProgramController extends AbstractController
 {
     #[Route('/program/', name: 'program_index')]
-    public function index(ProgramRepository $programRepository): Response
+    public function index(ProgramRepository $programRepository, RequestStack $requestStack): Response
     {
         $programs = $programRepository->findAll();
+        $session = $requestStack->getSession();
+
+    if (!$session->has('total')) {
+
+        $session->set('total', 0); // if total doesn’t exist in session, it is initialized.
+
+    }
+
+    $total = $session->get('total'); // get actual value in session with ‘total' key.
+
+    // ...
         return $this->render('program/index.html.twig', [
 
             'website' => 'Wild Series', 'programs' => $programs
@@ -42,6 +56,8 @@ public function new(Request $request, ProgramRepository $ProgramRepository): Res
 
     if ($form->isSubmitted()&& $form->isValid()) {
         $ProgramRepository->save($program, true);
+        $this->addFlash('success', 'The new program has been created');
+
         return $this->redirectToRoute('program_index');
 
     }

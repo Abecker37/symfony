@@ -28,7 +28,7 @@ class SeasonFixtures extends Fixture implements DependentFixtureInterface
         */
 
 
-        for($i = 0; $i < 50; $i++) {
+        for($i = 0; $i < 100; $i++) {
 
             $season = new Season();
 
