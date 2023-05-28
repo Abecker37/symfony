@@ -2,6 +2,7 @@
 // src/Controller/ProgramController.php
 namespace App\Controller;
 
+use App\Entity\Actor;
 use App\Entity\Season;
 use App\Entity\Episode;
 use App\Entity\Program;
@@ -16,9 +17,11 @@ use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 
+
 class ProgramController extends AbstractController
 {
     #[Route('/program/', name: 'program_index')]
+
     public function index(ProgramRepository $programRepository, RequestStack $requestStack): Response
     {
         $programs = $programRepository->findAll();

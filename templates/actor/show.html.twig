@@ -7,7 +7,7 @@
     <div class="media">
         
         <h2>{{actor.name}}</h2>
-        <ul>
+         <ul>
         {% for program in actor.programs %}
         <li><a href="{{ path('program_show', { 'id': program.id }) }}">{{ program.title }}</a></li>
         
@@ -17,7 +17,7 @@
         
             {% endfor %}
         
-        </ul>
+        </ul> 
 
     </div>
 
