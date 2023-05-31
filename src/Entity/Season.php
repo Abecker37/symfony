@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use App\Entity\Program;
 
 #[ORM\Entity(repositoryClass: SeasonRepository::class)]
 class Season
@@ -18,7 +19,7 @@ class Season
 
     #[ORM\ManyToOne(inversedBy: 'seasons')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Program $program_id = null;
+    private ?Program $program = null;
 
     #[ORM\Column]
     private ?int $number = null;
@@ -42,14 +43,14 @@ class Season
         return $this->id;
     }
 
-    public function getProgramId(): ?Program
+    public function getProgram(): ?Program
     {
-        return $this->program_id;
+        return $this->program;
     }
 
-    public function setProgramId(?Program $program_id): self
+    public function setProgram(?Program $program): self
     {
-        $this->program_id = $program_id;
+        $this->program = $program;
 
         return $this;
     }
