@@ -8,9 +8,11 @@ use App\Entity\Episode;
 use App\Entity\Program;
 use App\Form\ProgramType;
 use App\Service\ProgramDuration;
+use Symfony\Component\Mime\Email;
 use App\Repository\SeasonRepository;
 use App\Repository\ProgramRepository;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -46,7 +48,7 @@ class ProgramController extends AbstractController
     }
 
 #[Route('program/new', name: 'new')]
-public function new(Request $request, ProgramRepository $ProgramRepository, SluggerInterface $slugger): Response
+public function new(Request $request, ProgramRepository $ProgramRepository, MailerInterface $mailer,SluggerInterface $slugger): Response
 {
 
     // Create a new Category Object
@@ -63,10 +65,22 @@ public function new(Request $request, ProgramRepository $ProgramRepository, Slug
         $slug = $slugger->slug($program->getTitle());
         $program->setSlug($slug);
         $ProgramRepository->save($program, true);
+        $email = (new Email())
+
+        ->from($this->getParameter('mailer_from'))
+
+        ->to('your_email@example.com')
+
+        ->subject('Une nouvelle série vient d\'être publiée !')
+
+        ->html($this->renderView('Program/newProgramEmail.html.twig', ['program' => $program]));
+
+
+$mailer->send($email);
+
         $this->addFlash('success', 'The new program has been created');
 
         return $this->redirectToRoute('program_index');
-
     }
 
 
