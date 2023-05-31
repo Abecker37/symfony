@@ -7,12 +7,14 @@ use App\Entity\Season;
 use App\Entity\Episode;
 use App\Entity\Program;
 use App\Form\ProgramType;
+use App\Service\ProgramDuration;
 use App\Repository\SeasonRepository;
 use App\Repository\ProgramRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -44,7 +46,7 @@ class ProgramController extends AbstractController
     }
 
 #[Route('program/new', name: 'new')]
-public function new(Request $request, ProgramRepository $ProgramRepository): Response
+public function new(Request $request, ProgramRepository $ProgramRepository, SluggerInterface $slugger): Response
 {
 
     // Create a new Category Object
@@ -58,6 +60,8 @@ public function new(Request $request, ProgramRepository $ProgramRepository): Res
 
 
     if ($form->isSubmitted()&& $form->isValid()) {
+        $slug = $slugger->slug($program->getTitle());
+        $program->setSlug($slug);
         $ProgramRepository->save($program, true);
         $this->addFlash('success', 'The new program has been created');
 
@@ -76,21 +80,22 @@ public function new(Request $request, ProgramRepository $ProgramRepository): Res
 
 }
 
-    #[Route('/program/{id}/', name: 'program_show')]
+    #[Route('/program/{slug}/', name: 'program_show')]
 
-    public function show(Program $program): Response
+    public function show(Program $program, ProgramDuration $programDuration): Response
 
     {
-        return $this->render('program/show.html.twig', ['program' => $program]);
+        return $this->render('program/show.html.twig', ['program' => $program,
+        'programDuration' => $programDuration->calculate($program)]);
     }
 
-    #[Route('/{program}/season/{season}', requirements: ['programId' => '\d+', 'seasonId' => '\d+'], methods: ['GET'], name: 'program_season_show')]
+    #[Route('/{slug}/season/{season}', requirements: ['seasonId' => '\d+'], methods: ['GET'], name: 'program_season_show')]
     public function showSeason(Season $season, Program $program): Response
     {
         return $this->render('program/season_show.html.twig', ['program' => $program, 'season' => $season]);
     }
 
-    #[Route('/program/{program}/season/{season}/episode/{episode}', requirements: ['programId' => '\d+', 'seasonId' => '\d+'], methods: ['GET'], name: 'program_episode_show')]
+    #[Route('/program/{slug}/season/{season}/episode/{episode}', requirements: ['seasonId' => '\d+'], methods: ['GET'], name: 'program_episode_show')]
     public function showEpisode(Program $program, Season $season, Episode $episode): Response{
         return $this->render('program/episode_show.html.twig',['program' => $program, 'season' => $season , 'episode' => $episode]);
     }

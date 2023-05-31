@@ -3,9 +3,10 @@
 namespace App\DataFixtures;
 
 use App\Entity\Program;
-use Doctrine\Bundle\FixturesBundle\Fixture;
-use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
+use Doctrine\Bundle\FixturesBundle\Fixture;
+use Symfony\Component\String\Slugger\SluggerInterface;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 
 class ProgramFixtures extends Fixture implements DependentFixtureInterface
 {
@@ -53,7 +54,13 @@ class ProgramFixtures extends Fixture implements DependentFixtureInterface
             'reference' => 'program_Arcane',
         ]
     ];
+    protected SluggerInterface $slugger;
 
+    public function  __construct(SluggerInterface $sluggerInterface)
+    {
+        $this->slugger = $sluggerInterface;
+    }
+    
     public function load(ObjectManager $manager)
     {
         $i=0;
@@ -63,6 +70,8 @@ class ProgramFixtures extends Fixture implements DependentFixtureInterface
             $program->setSynopsis($programe['synopsis']);
             $program->setCountry($programe['country']);
             $program->setYear($programe['year']);
+            $slug = $this->slugger->slug($program->getTitle());
+            $program->setSlug($slug);
             $program->setCategory($this->getReference($programe['category']));
             $this->addReference('program_'. $i, $program);
             $manager->persist($program);

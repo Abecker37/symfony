@@ -2,14 +2,21 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Episode;
-use Doctrine\Bundle\FixturesBundle\Fixture;
-use Doctrine\Persistence\ObjectManager;
-use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Faker\Factory;
+use App\Entity\Episode;
+use Doctrine\Persistence\ObjectManager;
+use Doctrine\Bundle\FixturesBundle\Fixture;
+use Symfony\Component\String\Slugger\SluggerInterface;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 
 class EpisodeFixtures extends Fixture implements DependentFixtureInterface
 {
+    protected SluggerInterface $slugger;
+
+    public function  __construct(SluggerInterface $sluggerInterface)
+    {
+        $this->slugger = $sluggerInterface;
+    }
     
     public function load(ObjectManager $manager)
     {
@@ -21,6 +28,8 @@ class EpisodeFixtures extends Fixture implements DependentFixtureInterface
             $episode->setNumber($faker->numberBetween(1, 10));
             $episode->setSynopsis($faker->paragraphs(3, true));
             $episode->setSeason($this->getReference('season_' . $faker->numberBetween(0, 49)));
+            $slug = $this->slugger->slug($episode->getTitle());
+            $episode->setSlug($slug);
             $manager->persist($episode);
             $this->addReference('episode_' . $i, $episode);
         }
