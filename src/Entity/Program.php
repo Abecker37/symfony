@@ -2,17 +2,23 @@
 
 namespace App\Entity;
 
-use App\Repository\ProgramRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use DateTime;
+use App\Entity\Category;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use Symfony\Component\Validator\Constraints as Assert;
+use App\Repository\ProgramRepository;
+use Doctrine\Common\Collections\Collection;
+use Symfony\Component\HttpFoundation\File\File;
+use Doctrine\Common\Collections\ArrayCollection;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
 use Symfony\Component\String\Slugger\SluggerInterface;
-use App\Entity\Category;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use DateTimeInterface;
+
 
 #[ORM\Entity(repositoryClass: ProgramRepository::class)]
+#[Vich\Uploadable]
 #[UniqueEntity('title')]
 class Program
 {
@@ -26,21 +32,31 @@ class Program
     #[Assert\Length(
 
         max: 255,
-    
+
         maxMessage: 'La série saisie {{ value }} est trop longue, elle ne devrait pas dépasser {{ limit }} caractères',
-    
+
     )]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT)]
     #[Assert\NotBlank(message: 'Ne me laisse pas tout vide')]
     #[Assert\Regex(
-            pattern:"/^(?!.*plus belle la vie).+$/i",
-            message:"On parle de vraies séries ici")]
+        pattern: "/^(?!.*plus belle la vie).+$/i",
+        message: "On parle de vraies séries ici"
+    )]
     private ?string $synopsis = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $poster = null;
+
+    #[Vich\UploadableField(mapping: 'poster_file', fileNameProperty: 'poster')]
+    #[Assert\File(
+    maxSize: '1M',
+    mimeTypes: ['image/jpeg', 'image/png', 'image/webp'],)]
+    private ?File $posterFile = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?DatetimeInterface $updatedAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'programs')]
     #[ORM\JoinColumn(nullable: false)]
@@ -66,10 +82,33 @@ class Program
         $this->seasons = new ArrayCollection();
         $this->actors = new ArrayCollection();
     }
-    
+
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function setPosterFile(File $image = null): Program
+
+    {
+
+        $this->posterFile = $image;
+
+        if ($image) {
+
+            $this->updatedAt = new DateTime('now');
+        }
+
+
+        return $this;
+    }
+
+
+    public function getPosterFile(): ?File
+
+    {
+
+        return $this->posterFile;
     }
 
     public function getTitle(): ?string
@@ -213,5 +252,23 @@ class Program
         return $this;
     }
 
-    
+    /**
+     * Get the value of updatedAt
+     */ 
+    public function getUpdatedAt()
+    {
+        return $this->updatedAt;
+    }
+
+    /**
+     * Set the value of updatedAt
+     *
+     * @return  self
+     */ 
+    public function setUpdatedAt($updatedAt)
+    {
+        $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
 }
