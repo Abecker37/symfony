@@ -17,6 +17,17 @@
             </a>
             <p>{{episode.synopsis}}</p>
         </div>
+
+        {% if app.user %}
+            <a href="{{path('app_comment_new')}}">add a comment</a>
+        {% endif %}
+        <br>
+        {% for comments in episode.comments %}
+        <h6>{{ comments.user.email }}</h6>
+            <li>{{ comments.rate ~ ' ' ~ comments.comment}}</li>
+        {% else %}
+            Aucune commentaire trouvée.
+        {% endfor %}
     </div>
 
     <a href="{{ path('program_index') }}">
