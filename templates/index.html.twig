@@ -2,7 +2,13 @@
 {% block title %}Wild Series
 {% endblock %}
 {% block body %}
-    <main>
-        <h1>Bienvenue !</h1>
-    </main>
+<main>
+    <div class="p-5" style="font-size: 1.3em;">
+        <h1> <span {{ stimulus_controller('symfony/ux-typed', { strings: [ "Bienvenue sur Wild Series"
+            , "Le meilleur site pour suivre tes séries préférées"
+            , "Découvre les dernières actus sur les séries du moment" , ], loop: true, showCursor: true, cursorChar: '✨'
+            , }) }}></span>
+        </h1>
+    </div>
+</main>
 {% endblock %}
