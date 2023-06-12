@@ -9,6 +9,7 @@ use App\Entity\Episode;
 use App\Entity\Program;
 use App\Form\CommentType;
 use App\Form\ProgramType;
+use App\Form\SearchProgramType;
 use App\Service\ProgramDuration;
 use Symfony\Component\Mime\Email;
 use App\Repository\SeasonRepository;
@@ -30,7 +31,7 @@ class ProgramController extends AbstractController
 {
     #[Route('/program/', name: 'program_index')]
 
-    public function index(ProgramRepository $programRepository, RequestStack $requestStack): Response
+    public function index(ProgramRepository $programRepository, RequestStack $requestStack,Request $request): Response
     {
         $programs = $programRepository->findAll();
         $session = $requestStack->getSession();
@@ -42,13 +43,32 @@ class ProgramController extends AbstractController
     }
 
     $total = $session->get('total'); // get actual value in session with ‘total' key.
+    $form = $this->createForm(SearchProgramType::class);
 
-    // ...
-        return $this->render('program/index.html.twig', [
+    $form->handleRequest($request);
 
-            'website' => 'Wild Series', 'programs' => $programs
 
-        ]);
+    if ($form->isSubmitted() && $form->isValid()) {
+
+        $search = $form->getData()['search'];
+
+        $programs = $programRepository->findLikeName($search);
+
+    } else {
+
+        $programs = $programRepository->findAll();
+
+    }
+
+
+    return $this->render('program/index.html.twig', [
+
+        'programs' => $programs,
+
+        'form' => $form,
+
+    ]);
+    
     }
 
 #[Route('program/new', name: 'new')]
