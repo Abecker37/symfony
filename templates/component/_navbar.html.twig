@@ -8,19 +8,18 @@
             <li class="nav-item">
                 <a class="nav-link me-4" href="/category">Catégories</a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/Acteurs">Acteurs</a>
-            </li>
+            
+            {{ component('navbar') }}
 
             {% if app.user %}
 
             {{ app.user.email }}
 
-            <a href="{{ path('app_logout') }}"> Se déconnecter</a>
+            <li><a href="{{ path('app_logout') }}"> Se déconnecter</a></li>
 
             {% else %}
 
-            <a href="{{ path('app_login') }}"> Se connecter</a>
+            <li><a href="{{ path('app_login') }}"> Se connecter</a></li>
 
             {% endif %}
             <button data-action="theme#toggleDarkMode">Toggle dark mode</button>
