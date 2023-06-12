@@ -15,7 +15,8 @@
             {{ encore_entry_script_tags('app') }}
         {% endblock %}
     </head>
-    <body>
+
+    <body {{ stimulus_controller('theme') }} {{ stimulus_target('theme', 'body') }}>
         {% block navbar %}
             {% include "/component/_navbar.html.twig" %}
         {% endblock %}
