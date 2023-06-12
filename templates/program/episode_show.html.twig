@@ -19,12 +19,15 @@
         </div>
 
         {% if app.user %}
-            <a href="{{path('app_comment_new')}}">add a comment</a>
+            <a href="{{path('program_app_comments_new',{'program':program.slug,'season':season.id, 'episode':episode.id})}}">add a comment</a>
         {% endif %}
         <br>
         {% for comments in episode.comments %}
         <h6>{{ comments.user.email }}</h6>
             <li>{{ comments.rate ~ ' ' ~ comments.comment}}</li>
+            {% if is_granted("ROLE_CONTRIBUTOR") %}
+				{{ include('comment/_delete_form.html.twig') }}
+			{% endif %}
         {% else %}
             Aucune commentaire trouvée.
         {% endfor %}

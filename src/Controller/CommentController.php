@@ -5,10 +5,11 @@ namespace App\Controller;
 use App\Entity\Comment;
 use App\Form\CommentType;
 use App\Repository\CommentRepository;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 #[Route('/comment')]
 class CommentController extends AbstractController
@@ -49,6 +50,7 @@ class CommentController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_comment_edit', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_CONTRIBUTOR')]
     public function edit(Request $request, Comment $comment, CommentRepository $commentRepository): Response
     {
         $form = $this->createForm(CommentType::class, $comment);
@@ -73,6 +75,10 @@ class CommentController extends AbstractController
             $commentRepository->remove($comment, true);
         }
 
-        return $this->redirectToRoute('app_comment_index', [], Response::HTTP_SEE_OTHER);
+        if ($this->getUser() !== $comment->getUser() && array_search('ROLE_ADMIN', $this->getUser()->getRoles()) === FALSE) {
+            throw $this->createAccessDeniedException('Only the owner or the admin can delete the comment!');
+        }
+
+        return $this->redirectToRoute('program_index', [], Response::HTTP_SEE_OTHER);
     }
 }

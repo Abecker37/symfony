@@ -4,12 +4,15 @@ namespace App\Controller;
 
 use App\Entity\Actor;
 use App\Entity\Season;
+use App\Entity\Comment;
 use App\Entity\Episode;
 use App\Entity\Program;
+use App\Form\CommentType;
 use App\Form\ProgramType;
 use App\Service\ProgramDuration;
 use Symfony\Component\Mime\Email;
 use App\Repository\SeasonRepository;
+use App\Repository\CommentRepository;
 use App\Repository\ProgramRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mailer\MailerInterface;
@@ -18,6 +21,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 
@@ -64,6 +68,7 @@ public function new(Request $request, ProgramRepository $ProgramRepository, Mail
     if ($form->isSubmitted()&& $form->isValid()) {
         $slug = $slugger->slug($program->getTitle());
         $program->setSlug($slug);
+        $program->setOwner($this->getUser());
         $ProgramRepository->save($program, true);
         $email = (new Email())
 
@@ -93,6 +98,34 @@ $mailer->send($email);
     ]);
 
 }
+#[Route('/{slug}/edit', name: 'program_edit', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function edit(Request $request, Program $program, ProgramRepository $programRepository, SluggerInterface $slugger): Response
+    {
+        $form = $this->createForm(ProgramType::class, $program);
+        $form->handleRequest($request);
+
+        if ($this->getUser() !== $program->getOwner()) {
+            // If not the owner, throws a 403 Access Denied exception
+            throw $this->createAccessDeniedException('Only the owner can edit the program!');
+        }
+
+        if ($form->isSubmitted() && $form->isValid()) {
+
+            $slug = $slugger->slug($program->getTitle());
+            $program->setSlug($slug);
+
+            $programRepository->save($program, true);
+            $this->addFlash('success', 'The new program has been update');
+            return $this->redirectToRoute('program_index', [], Response::HTTP_SEE_OTHER);
+        }
+
+        return $this->renderForm('program/edit.html.twig', [
+            'season' => $program,
+            'form' => $form,
+        ]);
+    }
+
 
     #[Route('/program/{slug}/', name: 'program_show')]
 
@@ -112,6 +145,27 @@ $mailer->send($email);
     #[Route('/program/{slug}/season/{season}/episode/{episode}', requirements: ['seasonId' => '\d+'], methods: ['GET'], name: 'program_episode_show')]
     public function showEpisode(Program $program, Season $season, Episode $episode): Response{
         return $this->render('program/episode_show.html.twig',['program' => $program, 'season' => $season , 'episode' => $episode]);
+    }
+
+    #[Route('/show/{program}/season/{season}/episode/{episode}/comment', name: 'program_app_comments_new', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_CONTRIBUTOR')]
+    public function newComments(CommentRepository $commentsRepository, program $program, season $season, episode $episode, Request $request): Response
+    {
+        $comment = new Comment();
+        $form = $this->createForm(CommentType::class, $comment);
+        $form->handleRequest($request);
+
+        $comment->setUser($this->getUser());
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $commentsRepository->save($comment, true);
+            return $this->redirectToRoute('program_episode_show', ['slug' => $program->getSlug(), 'season' => $season->getId(), 'episode' => $episode->getId()], Response::HTTP_SEE_OTHER);
+        }
+
+        return $this->render('comment/new.html.twig', [
+            'comment' => $comment,
+            'form' => $form,
+        ]);
     }
 
 
