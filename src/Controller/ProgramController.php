@@ -32,94 +32,90 @@ class ProgramController extends AbstractController
 {
     #[Route('/program/', name: 'program_index')]
 
-    public function index(ProgramRepository $programRepository, RequestStack $requestStack,Request $request): Response
+    public function index(ProgramRepository $programRepository, RequestStack $requestStack, Request $request): Response
     {
         $programs = $programRepository->findAll();
         $session = $requestStack->getSession();
 
-    if (!$session->has('total')) {
+        if (!$session->has('total')) {
 
-        $session->set('total', 0); // if total doesn’t exist in session, it is initialized.
+            $session->set('total', 0); // if total doesn’t exist in session, it is initialized.
 
+        }
+
+        $total = $session->get('total'); // get actual value in session with ‘total' key.
+        $form = $this->createForm(SearchProgramType::class);
+
+        $form->handleRequest($request);
+
+
+        if ($form->isSubmitted() && $form->isValid()) {
+
+            $search = $form->getData()['search'];
+
+            $programs = $programRepository->findLikeName($search);
+        } else {
+
+            $programs = $programRepository->findAll();
+        }
+
+
+        return $this->render('program/index.html.twig', [
+
+            'programs' => $programs,
+
+            'form' => $form,
+
+        ]);
     }
 
-    $total = $session->get('total'); // get actual value in session with ‘total' key.
-    $form = $this->createForm(SearchProgramType::class);
+    #[Route('program/new', name: 'new')]
+    public function new(Request $request, ProgramRepository $ProgramRepository, MailerInterface $mailer, SluggerInterface $slugger): Response
+    {
 
-    $form->handleRequest($request);
+        // Create a new Category Object
+
+        $program = new Program();
+
+        $form = $this->createForm(ProgramType::class, $program);
 
 
-    if ($form->isSubmitted() && $form->isValid()) {
+        $form->handleRequest($request);
 
-        $search = $form->getData()['search'];
 
-        $programs = $programRepository->findLikeName($search);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $slug = $slugger->slug($program->getTitle());
+            $program->setSlug($slug);
+            $program->setOwner($this->getUser());
+            $ProgramRepository->save($program, true);
+            $email = (new Email())
 
-    } else {
+                ->from($this->getParameter('mailer_from'))
 
-        $programs = $programRepository->findAll();
+                ->to('your_email@example.com')
 
+                ->subject('Une nouvelle série vient d\'être publiée !')
+
+                ->html($this->renderView('Program/newProgramEmail.html.twig', ['program' => $program]));
+
+
+            $mailer->send($email);
+
+            $this->addFlash('success', 'The new program has been created');
+
+            return $this->redirectToRoute('program_index');
+        }
+
+
+        // Render the form
+
+        return $this->render('program/new.html.twig', [
+
+            'form' => $form,
+
+        ]);
     }
-
-
-    return $this->render('program/index.html.twig', [
-
-        'programs' => $programs,
-
-        'form' => $form,
-
-    ]);
-    
-    }
-
-#[Route('program/new', name: 'new')]
-public function new(Request $request, ProgramRepository $ProgramRepository, MailerInterface $mailer,SluggerInterface $slugger): Response
-{
-
-    // Create a new Category Object
-
-    $program = new Program();
-
-    $form = $this->createForm(ProgramType::class, $program);
-
-
-    $form->handleRequest($request);
-
-
-    if ($form->isSubmitted()&& $form->isValid()) {
-        $slug = $slugger->slug($program->getTitle());
-        $program->setSlug($slug);
-        $program->setOwner($this->getUser());
-        $ProgramRepository->save($program, true);
-        $email = (new Email())
-
-        ->from($this->getParameter('mailer_from'))
-
-        ->to('your_email@example.com')
-
-        ->subject('Une nouvelle série vient d\'être publiée !')
-
-        ->html($this->renderView('Program/newProgramEmail.html.twig', ['program' => $program]));
-
-
-$mailer->send($email);
-
-        $this->addFlash('success', 'The new program has been created');
-
-        return $this->redirectToRoute('program_index');
-    }
-
-
-    // Render the form
-
-    return $this->render('program/new.html.twig', [
-
-        'form' => $form,
-
-    ]);
-
-}
-#[Route('/{slug}/edit', name: 'program_edit', methods: ['GET', 'POST'])]
+    #[Route('/{slug}/edit', name: 'program_edit', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_ADMIN')]
     public function edit(Request $request, Program $program, ProgramRepository $programRepository, SluggerInterface $slugger): Response
     {
@@ -153,8 +149,10 @@ $mailer->send($email);
     public function show(Program $program, ProgramDuration $programDuration): Response
 
     {
-        return $this->render('program/show.html.twig', ['program' => $program,
-        'programDuration' => $programDuration->calculate($program)]);
+        return $this->render('program/show.html.twig', [
+            'program' => $program,
+            'programDuration' => $programDuration->calculate($program)
+        ]);
     }
 
     #[Route('/{slug}/season/{season}', requirements: ['seasonId' => '\d+'], methods: ['GET'], name: 'program_season_show')]
@@ -164,8 +162,9 @@ $mailer->send($email);
     }
 
     #[Route('/program/{slug}/season/{season}/episode/{episode}', requirements: ['seasonId' => '\d+'], methods: ['GET'], name: 'program_episode_show')]
-    public function showEpisode(Program $program, Season $season, Episode $episode): Response{
-        return $this->render('program/episode_show.html.twig',['program' => $program, 'season' => $season , 'episode' => $episode]);
+    public function showEpisode(Program $program, Season $season, Episode $episode): Response
+    {
+        return $this->render('program/episode_show.html.twig', ['program' => $program, 'season' => $season, 'episode' => $episode]);
     }
 
     #[Route('/show/{program}/season/{season}/episode/{episode}/comment', name: 'program_app_comments_new', methods: ['GET', 'POST'])]
@@ -212,11 +211,13 @@ $mailer->send($email);
             $user->addToWatchlist($program);
         }
 
-       $userRepository->save($user, true);        
+        $userRepository->save($user, true);
 
 
-    return $this->redirectToRoute('program_show', ['slug' => $program->getSlug()], Response::HTTP_SEE_OTHER);
+        return $this->json([
+
+            'isInWatchlist' => $this->getUser()->isInWatchlist($program)
+
+        ]);
     }
-
-
 }
