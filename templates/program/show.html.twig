@@ -8,13 +8,13 @@
         <img class="align-self-start mr-3" src="{{ vich_uploader_asset(program) }}" alt="{{ program.title }}poster"> 
         <div class="media-body">
             <h1 class="mt-0">{{ program.title }}</h1>
-            {% if app.user %}
-            <a href="{{ path('program_watchlist', {id: program.id})}}">
 
-                <i class="bi {{ app.user.isInWatchlist(program) ? 'bi-heart-fill' : 'bi-heart' }}"></i>
-            
-            </a>
-			{% endif %}
+            {% if app.user %}
+					<a id="watchlist" data-no-swup href="{{ path('program_watchlist', {id: program.id})}}">
+						<i class="bi {{ app.user.isInWatchlist(program) ? 'bi-heart-fill' : 'bi-heart' }}"></i>
+					</a>
+				{% endif %}
+			
 
             <p>{{ program.synopsis }}</p>
             <p>Catégorie : {{ program.category.name }}</p>

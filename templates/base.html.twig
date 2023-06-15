@@ -16,7 +16,7 @@
         {% endblock %}
     </head>
 
-    <body {{ stimulus_controller('symfony/ux-swup/swup') }} {{ stimulus_controller('theme') }} {{ stimulus_target('theme', 'body') }}>
+    <body {{ stimulus_controller('symfony/ux-swup/swup') }} {{ stimulus_controller('theme') }} {{ stimulus_target('theme', 'body') }}> 
         <div id="swup">
             {% block navbar %}
                 {% include "/component/_navbar.html.twig" %}
